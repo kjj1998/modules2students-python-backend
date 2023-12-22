@@ -40,3 +40,41 @@ def get_module(course_code: str, driver: Driver):
         module = models.ModuleBase(**data)
 
     return module
+
+def search_modules(search_term: str, skip: int, limit: int, driver: Driver):
+    """Function to search for modules in the db"""
+    query = cypher_queries.SEARCH_MODULES
+
+    eager_result = driver.execute_query(
+        query,
+        search_term=search_term,
+        skip=skip,
+        limit=limit,
+        database_="neo4j",
+    )
+    records = eager_result.records
+    modules: list[models.ModuleBase] = []
+
+    for record in records:
+        data = record.data()
+        module = models.ModuleBase(**data)
+        modules.append(module)
+
+    return modules 
+
+def get_modules_course_codes(driver: Driver):
+    """Function to get all modules' course codes"""
+    query = cypher_queries.GET_MODULES_COURSE_CODES
+
+    eager_result = driver.execute_query(
+        query,
+        database_="neo4j"
+    )
+    records = eager_result.records
+    course_codes: list[str] = []
+
+    for record in records:
+        data = record.data()
+        course_codes.append(data["course_code"])
+
+    return course_codes

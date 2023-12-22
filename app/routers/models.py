@@ -1,3 +1,4 @@
+"""Pydantic models definition"""
 from typing import Union
 from pydantic import BaseModel
 
