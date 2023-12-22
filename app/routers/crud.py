@@ -106,11 +106,11 @@ def get_modules_in_a_faculty(faculty: str, driver: Driver):
         database_="neo4j"
     )
     records = eager_result.records
-    modules: list[models.ModuleBase] = []
+    modules: list[models.ModuleCourseCodeAndName] = []
 
     for record in records:
         data = record.data()
-        module = models.ModuleBase(**data)
+        module = models.ModuleCourseCodeAndName(**data)
         modules.append(module)
 
     return modules

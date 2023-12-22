@@ -8,7 +8,6 @@ class ModuleCourseCodeAndName(BaseModel):
     course_code: str
     course_name: str
 
-
 class ModuleBase(BaseModel):
     """
     Base model for modules

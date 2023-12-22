@@ -73,7 +73,7 @@ async def retrieve_faculties(driver: Driver = Depends(get_db_driver)):
 
     return faculties
 
-@router.get("/faculty/{faculty}", response_model=list[models.ModuleBase])
+@router.get("/faculty/{faculty}", response_model=list[models.ModuleCourseCodeAndName])
 async def retrieve_modules_in_a_faculty(faculty: str, driver: Driver = Depends(get_db_driver)):
     """API endpoint to get all modules in a faculty"""
 
