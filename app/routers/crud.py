@@ -78,3 +78,20 @@ def get_modules_course_codes(driver: Driver):
         course_codes.append(data["course_code"])
 
     return course_codes
+
+def get_faculties(driver: Driver):
+    """Function to get all faculties"""
+    query = cypher_queries.GET_FACULTIES
+
+    eager_result = driver.execute_query(
+        query,
+        database_="neo4j"
+    )
+    records = eager_result.records
+    faculties: list[str] = []
+
+    for record in records:
+        data = record.data()
+        faculties.append(data["faculty"])
+
+    return faculties

@@ -55,6 +55,7 @@ async def search(
 
     return modules
 
+
 @router.get("/get/coursecodes", response_model=list[str])
 async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)):
     """API endpoint to get all modules' course codes"""
@@ -62,3 +63,12 @@ async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)):
     course_codes = crud.get_modules_course_codes(driver)
 
     return course_codes
+
+
+@router.get("/get/faculties", response_model=list[str])
+async def retrieve_faculties(driver: Driver = Depends(get_db_driver)):
+    """API endpoint to get all faculties"""
+
+    faculties = crud.get_faculties(driver)
+
+    return faculties

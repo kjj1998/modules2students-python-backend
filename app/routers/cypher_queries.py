@@ -34,3 +34,9 @@ GET_MODULES_COURSE_CODES = (
         "MATCH (m:Module) " +
         "RETURN m.course_code AS course_code"
         )
+
+GET_FACULTIES = (
+        "MATCH (m:Module) " +
+        "WITH m.faculty AS faculty " +
+        "RETURN DISTINCT faculty"
+        )
