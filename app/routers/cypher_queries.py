@@ -40,3 +40,9 @@ GET_FACULTIES = (
         "WITH m.faculty AS faculty " +
         "RETURN DISTINCT faculty"
         )
+
+GET_MODULES_FOR_A_FACULTY = (
+        "MATCH (m:Module) " +
+        "WHERE m.faculty = $faculty " +
+        "RETURN m.course_code AS course_code, m.course_name AS course_name"
+        )
