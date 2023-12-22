@@ -7,8 +7,8 @@ from dependencies import get_db_driver  # pylint: disable=import-error
 from . import crud
 
 
-URI = "neo4j://localhost:7687"
-AUTH = ("neo4j", "12345678")
+# URI = "neo4j://localhost:7687"
+# AUTH = ("neo4j", "12345678")
 
 router = APIRouter(
     prefix="/modules", tags=["modules"], responses={404: {"description": "Not found"}}

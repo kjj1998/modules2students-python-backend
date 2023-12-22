@@ -1,15 +1,19 @@
 """
 Dependencies
 """
+import config  # pylint: disable=import-error
 from neo4j import GraphDatabase
 
-URI = "neo4j://localhost:7687"
-AUTH = ("neo4j", "12345678")
 
 async def get_db_driver():
     """Dependency to Neo4j db driver"""
-    driver = GraphDatabase.driver(URI, auth=AUTH)
+
+    settings = config.Settings()
+    driver = GraphDatabase.driver(
+        settings.neo4j_uri, auth=(settings.neo4j_user, settings.neo4j_password)
+    )
     driver.verify_connectivity()
+
     try:
         yield driver
     finally:
