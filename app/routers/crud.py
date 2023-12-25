@@ -114,3 +114,21 @@ def get_modules_in_a_faculty(faculty: str, driver: Driver):
         modules.append(module)
 
     return modules
+
+def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver):
+    """Function to get all prerequisite groups for each module"""
+    query = cypher_queries.GET_PREREQUISITE_GROUPS_FOR_EACH_MODULE
+
+    eager_result = driver.execute_query(
+        query,
+        course_code=course_code,
+        database_="neo4j"
+    )
+    records = eager_result.records
+    prerequisite_groups: list[list[str]] = []
+
+    for record in records:
+        data = record.data()
+        prerequisite_groups.append(data["prereqInfo"])
+
+    return prerequisite_groups
