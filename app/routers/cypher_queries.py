@@ -47,3 +47,9 @@ GET_PREREQUISITE_GROUPS_FOR_EACH_MODULE = (
     + "WHERE m.course_code = $course_code "
     + "RETURN pg.group_id AS groupIds, COLLECT(DISTINCT prereq.course_code) AS prereqInfo"
 )
+
+GET_MUTUALLY_EXCLUSIVES_FOR_EACH_MODULE = (
+    "MATCH (m:Module)-[:MUTUALLY_EXCLUSIVE]->(mutual:Module) "
+    + "WHERE m.course_code = $course_code "
+    + "RETURN mutual.course_code AS mutualCourseCode"
+)

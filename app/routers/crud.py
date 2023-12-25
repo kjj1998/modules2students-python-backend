@@ -38,6 +38,11 @@ def get_module(course_code: str, driver: Driver):
     if len(records) > 0:
         data = records[0].data()
         module = models.ModuleBase(**data)
+        prerequisites = get_prerequisite_groups_for_each_module(course_code, driver)
+        mutually_exclusives = get_mutually_exclusives_for_each_module(course_code, driver)
+
+        module.prerequisites = prerequisites
+        module.mutually_exclusives = mutually_exclusives
 
     return module
 
@@ -129,6 +134,25 @@ def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver):
 
     for record in records:
         data = record.data()
+        print(data)
         prerequisite_groups.append(data["prereqInfo"])
 
     return prerequisite_groups
+
+def get_mutually_exclusives_for_each_module(course_code: str, driver: Driver):
+    """Function to get all mutually exclusives for each module"""
+    query = cypher_queries.GET_MUTUALLY_EXCLUSIVES_FOR_EACH_MODULE
+
+    eager_result = driver.execute_query(
+        query,
+        course_code=course_code,
+        database_="neo4j"
+    )
+    records = eager_result.records
+    mutually_exclusives: list[str] = []
+
+    for record in records:
+        data = record.data()
+        mutually_exclusives.append(data["mutualCourseCode"])
+
+    return mutually_exclusives

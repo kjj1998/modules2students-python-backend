@@ -80,14 +80,3 @@ async def retrieve_all_modules_in_a_faculty(faculty: str, driver: Driver = Depen
     modules = crud.get_modules_in_a_faculty(faculty, driver)
 
     return modules
-
-@router.get("/prerequisites/{module}", response_model=list[list[str]] | None)
-async def retrieve_all_prerequisite_groups_for_a_module(
-    module: str, 
-    driver: Driver = Depends(get_db_driver)
-):
-    """API endpoint to get all prerequisite groups for each module"""
-
-    prerequisite_groups = crud.get_prerequisite_groups_for_each_module(module, driver)
-
-    return prerequisite_groups

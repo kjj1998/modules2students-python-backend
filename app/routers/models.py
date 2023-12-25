@@ -21,3 +21,5 @@ class ModuleBase(BaseModel):
     faculty: str = None
     grade_type: str = None
     total: Union[int, None] = None
+    prerequisites: Union[list[list[str]], None] = None
+    mutually_exclusives: Union[list[str], None] = None
