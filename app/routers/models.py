@@ -23,3 +23,17 @@ class ModuleBase(BaseModel):
     total: Union[int, None] = None
     prerequisites: Union[list[list[str]], None] = None
     mutually_exclusives: Union[list[str], None] = None
+
+class StudentBase(BaseModel):
+    """
+    Base Model for students
+    """
+
+    student_id: str
+    email: str
+    major: str = ""
+    first_name: str = ""
+    last_name: str = ""
+    year_of_study: int = 1
+    disciplines: list[str] = []
+    course_codes: list[str] = []
