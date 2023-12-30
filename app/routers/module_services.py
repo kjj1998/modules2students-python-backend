@@ -16,7 +16,7 @@ from .module_cypher_queries import (
 )
 
 
-def get_modules(skip: int, limit: int, driver: Driver):
+def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
     """Function to get modules data from Neo4j db"""
     query = GET_ALL_MODULES
 
@@ -37,7 +37,7 @@ def get_modules(skip: int, limit: int, driver: Driver):
     return modules
 
 
-def get_module(course_code: str, driver: Driver):
+def get_module(course_code: str, driver: Driver) -> ModuleBase:
     """Function get a single module data from Neo4j db"""
     query = GET_MODULE
 
@@ -63,7 +63,7 @@ def get_module(course_code: str, driver: Driver):
     return module
 
 
-def search_modules(search_term: str, skip: int, limit: int, driver: Driver):
+def search_modules(search_term: str, skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
     """Function to search for modules in the db"""
     query = SEARCH_MODULES
 
@@ -85,7 +85,7 @@ def search_modules(search_term: str, skip: int, limit: int, driver: Driver):
     return modules
 
 
-def get_modules_course_codes(driver: Driver):
+def get_modules_course_codes(driver: Driver) -> list[str]:
     """Function to get all modules' course codes"""
     query = GET_MODULES_COURSE_CODES
 
@@ -100,7 +100,7 @@ def get_modules_course_codes(driver: Driver):
     return course_codes
 
 
-def get_faculties(driver: Driver):
+def get_faculties(driver: Driver) -> list[str]:
     """Function to get all faculties"""
     query = GET_FACULTIES
 
@@ -115,7 +115,7 @@ def get_faculties(driver: Driver):
     return faculties
 
 
-def get_modules_in_a_faculty(faculty: str, driver: Driver):
+def get_modules_in_a_faculty(faculty: str, driver: Driver) -> list[ModuleCourseCodeAndName]:
     """Function to get all modules in a faculty"""
     query = GET_MODULES_FOR_A_FACULTY
 
@@ -131,7 +131,7 @@ def get_modules_in_a_faculty(faculty: str, driver: Driver):
     return modules
 
 
-def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver):
+def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver) -> list[list[str]]:
     """Function to get all prerequisite groups for each module"""
     query = GET_PREREQUISITE_GROUPS_FOR_EACH_MODULE
 
@@ -149,7 +149,7 @@ def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver):
     return prerequisite_groups
 
 
-def get_mutually_exclusives_for_each_module(course_code: str, driver: Driver):
+def get_mutually_exclusives_for_each_module(course_code: str, driver: Driver) -> list[str]:
     """Function to get all mutually exclusives for each module"""
     query = GET_MUTUALLY_EXCLUSIVES_FOR_EACH_MODULE
 

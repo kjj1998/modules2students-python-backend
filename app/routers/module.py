@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from neo4j import Driver
 from dependencies import get_db_driver  # pylint: disable=import-error
 from .models import ModuleBase, ModuleCourseCodeAndName
-from .module_services import get_modules, search_modules, get_modules_course_codes, get_module
+from .module_services import (
+    get_modules,
+    search_modules,
+    get_modules_course_codes,
+    get_module,
+)
 from .module_services import get_faculties, get_modules_in_a_faculty
 
 router = APIRouter(
@@ -14,7 +19,9 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[ModuleBase])
-async def read_modules(skip: int = 0, limit: int = 10, driver: Driver = Depends(get_db_driver)):
+async def read_modules(
+    skip: int = 0, limit: int = 10, driver: Driver = Depends(get_db_driver)
+) -> list[ModuleBase]:
     """API endpoint to read modules data from Neo4j db"""
 
     modules = get_modules(skip, limit, driver)
@@ -23,7 +30,9 @@ async def read_modules(skip: int = 0, limit: int = 10, driver: Driver = Depends(
 
 
 @router.get("/{course_code}", response_model=ModuleBase)
-async def read_module(course_code: str | None = None, driver: Driver = Depends(get_db_driver)):
+async def read_module(
+    course_code: str | None = None, driver: Driver = Depends(get_db_driver)
+) -> ModuleBase:
     """API endpoint to read a single module from the db"""
 
     if str is None:
@@ -46,7 +55,7 @@ async def search(
     skip: int = 0,
     limit: int = 10,
     driver: Driver = Depends(get_db_driver),
-):
+) -> list[ModuleBase]:
     """API endpoint to search for relevant modules based on a search term"""
 
     modules = search_modules(search_term, skip, limit, driver)
@@ -55,7 +64,7 @@ async def search(
 
 
 @router.get("/get/coursecodes", response_model=list[str])
-async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)):
+async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)) -> list[str]:
     """API endpoint to get all modules' course codes"""
 
     course_codes = get_modules_course_codes(driver)
@@ -64,7 +73,7 @@ async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)):
 
 
 @router.get("/get/faculties", response_model=list[str])
-async def retrieve_faculties(driver: Driver = Depends(get_db_driver)):
+async def retrieve_faculties(driver: Driver = Depends(get_db_driver)) -> list[str]:
     """API endpoint to get all faculties"""
 
     faculties = get_faculties(driver)
@@ -73,7 +82,9 @@ async def retrieve_faculties(driver: Driver = Depends(get_db_driver)):
 
 
 @router.get("/faculty/{faculty}", response_model=list[ModuleCourseCodeAndName])
-async def retrieve_all_modules_in_a_faculty(faculty: str, driver: Driver = Depends(get_db_driver)):
+async def retrieve_all_modules_in_a_faculty(
+    faculty: str, driver: Driver = Depends(get_db_driver)
+) -> list[ModuleCourseCodeAndName]:
     """API endpoint to get all modules in a faculty"""
 
     modules = get_modules_in_a_faculty(faculty, driver)

@@ -10,7 +10,7 @@ from .module_services import (
     get_mutually_exclusives_for_each_module, get_prerequisite_groups_for_each_module
 )
 
-def get_student(student_id: str, driver: Driver):
+def get_student(student_id: str, driver: Driver) -> StudentBase:
     """Function to get a single student from Neo4j db"""
     query = GET_STUDENT
 
@@ -48,7 +48,7 @@ def get_student_courses(student_id: str, driver: Driver) -> list[str]:
     return modules
 
 
-def update_student_details(student: StudentBase, driver: Driver):
+def update_student_details(student: StudentBase, driver: Driver) -> StudentBase:
     """Function to update the details of a student"""
     query = UPDATE_STUDENT
 
@@ -76,7 +76,7 @@ def update_student_details(student: StudentBase, driver: Driver):
     return updated_student
 
 
-def search_for_modules(modules: list[str], driver: Driver):
+def search_for_modules(modules: list[str], driver: Driver) -> list[str]:
     """Function to check whether the modules exist in the db"""
     search_for_modules_query = GET_MODULE
     retrieved_modules: list[str] = []
@@ -98,7 +98,7 @@ def search_for_modules(modules: list[str], driver: Driver):
     return retrieved_modules
 
 
-def check_modules_existence(modules: list[str], driver: Driver):
+def check_modules_existence(modules: list[str], driver: Driver) -> bool:
     """Function to check whether the list of modules exist in the db"""
     retrieved_modules = search_for_modules(modules, driver)
 

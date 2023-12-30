@@ -13,7 +13,9 @@ router = APIRouter(
 
 
 @router.get("/{student_id}")
-async def read_student(student_id: str | None = None, driver: Driver = Depends(get_db_driver)):
+async def read_student(
+    student_id: str | None = None, driver: Driver = Depends(get_db_driver)
+) -> StudentBase:
     """API endpoint to get a particular student's information"""
 
     if str is None:
@@ -24,8 +26,11 @@ async def read_student(student_id: str | None = None, driver: Driver = Depends(g
     student = get_student(student_id, driver)
     return student
 
+
 @router.put("/")
-async def update_student(student: StudentBase, driver: Driver = Depends(get_db_driver)):
+async def update_student(
+    student: StudentBase, driver: Driver = Depends(get_db_driver)
+) -> StudentBase:
     """API endpoint to get update a student details"""
     if get_student(student.student_id, driver) is None:
         raise HTTPException(
