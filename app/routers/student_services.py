@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException, status
 from neo4j import Driver
-from .models import StudentBase, ModuleBase
+from .models import StudentBase, ModuleBase, PrerequisiteGroup, ModuleDB, ModuleDTO
 from .student_cypher_queries import GET_STUDENT, GET_STUDENT_MODULES, UPDATE_STUDENT
 from .student_cypher_queries import DELETE_MODULE_TAKEN, ADD_MODULE_TAKEN
 from .module_cypher_queries import GET_MODULE
@@ -163,6 +163,8 @@ def update_student_modules(student_id: str, modules: list[str], driver: Driver) 
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Some of the course codes entered are invalid!",
         )
+    
+
 
     current_modules = get_current_modules_taken(student_id, driver)
     current_modules_set = set(current_module.course_code for current_module in current_modules)
@@ -174,3 +176,29 @@ def update_student_modules(student_id: str, modules: list[str], driver: Driver) 
     add_modules_taken(student_id, modules_to_be_added, driver)
 
     return modules
+
+def check_prerequisites_fulfillment(modules: list[ModuleDB]) -> list[str]:
+    in_degree: dict[str, list[set[str]]] = {}
+    out_degree: dict[str, list[str]] = {}
+
+    for module in modules:
+        current_course_code: str = module.course_code
+        prereq_groups: list[PrerequisiteGroup] = module.prerequisites
+    
+        in_degree[current_course_code] = []
+
+        if (prereq_groups is not None and prereq_groups):
+            for prerequisite_group in prereq_groups:
+                prereq_modules: list[ModuleDB] = prerequisite_group.modules
+
+                for prereq_module in prereq_modules:
+                    if prereq_module.course_code not in out_degree:
+                        out_degree[prereq_module.course_code] = []
+
+                    out_degree[prereq_module.course_code].append(current_course_code)
+
+            in_degree[current_course_code].append(
+                set(prereq_module.course_code for prereq_module in )
+            )
+            
+        

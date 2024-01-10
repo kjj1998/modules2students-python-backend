@@ -2,11 +2,13 @@
 from typing import Union
 from pydantic import BaseModel
 
+
 class ModuleCourseCodeAndName(BaseModel):
     """Course code and name model"""
 
     course_code: str
     course_name: str
+
 
 class ModuleBase(BaseModel):
     """
@@ -23,6 +25,33 @@ class ModuleBase(BaseModel):
     total: Union[int, None] = None
     prerequisites: Union[list[list[str]], None] = None
     mutually_exclusives: Union[list[str], None] = None
+
+
+class PrerequisiteGroup(BaseModel):
+    """
+    Model for prerequisite groups
+    """
+
+    group_id: str
+    modules: list[ModuleBase]
+
+
+class ModuleDTO(ModuleBase):
+    """
+    Model for module for data transfer to frontend
+    """
+
+    prerequisites: Union[list[list[str]], None] = None
+    mutually_exclusives: Union[list[str], None] = None
+
+
+class ModuleDB(ModuleBase):
+    """
+    Model for modules in DB
+    """
+
+    prerequisites: Union[list[PrerequisiteGroup], None] = None
+
 
 class StudentBase(BaseModel):
     """
