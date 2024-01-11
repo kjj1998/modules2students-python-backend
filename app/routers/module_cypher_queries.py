@@ -53,3 +53,9 @@ GET_MUTUALLY_EXCLUSIVES_FOR_EACH_MODULE = (
     + "WHERE m.course_code = $course_code "
     + "RETURN mutual.course_code AS mutualCourseCode"
 )
+
+GET_TOTAL_NUMBER_OF_MODULES = (
+    "MATCH (m:Module) "
+    + "WITH COUNT(*) AS total "
+    + "RETURN total"
+)

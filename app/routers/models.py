@@ -1,18 +1,63 @@
-"""Pydantic models definition"""
+"""Pydantic models definition.
+
+This package contains the Pydantic model defintiions used.
+
+"""
 from typing import Union
 from pydantic import BaseModel
 
 
 class ModuleCourseCodeAndName(BaseModel):
-    """Course code and name model"""
+    """Course code and name model
+    
+    This is a Pydantic model containing the course code and 
+    course name of a module.
+
+    Attributes:
+      course_code: The course code of the module represented as 
+      a string.
+      course_name: The name of the module represented as a string.    
+    """
 
     course_code: str
     course_name: str
 
 
 class ModuleBase(BaseModel):
-    """
-    Base model for modules
+    """Base model for representing modules.
+    
+    This is a Pydantic model to represent modules.
+
+    Attributes:
+      course_code: 
+        The course code of the module represented as 
+        a string.
+      course_name: 
+        The name of the module represented as a string.
+      course_info: 
+        The background information of the module represented 
+        as a string.
+      academic_units: 
+        The number of academic units the module is worth.
+      broadening_and_deepening: 
+        A boolean indicating whether the module 
+        qualifies as a broadening and deepening elective.
+      faculty:
+        The faculty which the module belongs to represented 
+        as a string
+      grade_type:
+        The grade type of the module represented as a string.
+      total:
+        The total number of modules retrieved in this API call, to be used 
+        for pagination. Represented as an integer.
+      prerequisites:
+        The groups of modules that are prerequisites for this module. Represented 
+        as a list of list of strings where the strings are the course codes of the 
+        prerequisite modules.
+      mutually_exclusives:
+        The modules that are mutually exclusive to this module. Represented as 
+        a list of strings where the strings are the course codes of the mutually 
+        exclusive modules.
     """
 
     course_code: str
@@ -23,8 +68,8 @@ class ModuleBase(BaseModel):
     faculty: str = None
     grade_type: str = None
     total: Union[int, None] = None
-    prerequisites: Union[list[list[str]], None] = None
-    mutually_exclusives: Union[list[str], None] = None
+    prerequisites: list[list[str]] = []
+    mutually_exclusives: list[str] = []
 
 
 class PrerequisiteGroup(BaseModel):
@@ -54,8 +99,29 @@ class ModuleDB(ModuleBase):
 
 
 class StudentBase(BaseModel):
-    """
-    Base Model for students
+    """Base Model for representing students.
+
+    This is a Pydantic model to represent students.
+
+    Attributes:
+      student_id:
+        The student id represented as a string.
+      email:
+        The email of the student represented as a string.
+      major:
+        The major of the student represented as a string.
+      first_name:
+        The first name of the student represented as a string.
+      last_name:
+        The last name of the student represented as a string.
+      year_of_study:
+        The student's year of study represented as an integer.
+      disciplines:
+        The disciplines which the student belongs to represented as 
+        a list of strings.
+      course_codes:
+        The modules that the student have taken represented as a list of 
+        strings where the strings are the course codes of the taken modules.
     """
 
     student_id: str

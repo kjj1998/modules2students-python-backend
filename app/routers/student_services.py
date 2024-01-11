@@ -11,7 +11,22 @@ from .module_services import (
 )
 
 def get_student(student_id: str, driver: Driver) -> StudentBase:
-    """Function to get a single student from Neo4j db"""
+    """Retrieve a student's information from the db.
+    
+    This function retrieves a student's information from the db 
+    based on the student id supplied. The function takes in the 
+    student id and an open instance of the neo4j.Driver.
+
+    Args:
+      student_id: 
+        The id of the student whose information we want to retrieve.
+      driver:
+        An open instance of the neo4j.Driver.
+
+    Returns:
+      The information of the student encapsulated in a StudentBase model.
+      Returns None if the student does not exist.
+    """
     query = GET_STUDENT
 
     eager_result = driver.execute_query(
@@ -163,7 +178,6 @@ def update_student_modules(student_id: str, modules: list[str], driver: Driver) 
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Some of the course codes entered are invalid!",
         )
-    
 
 
     current_modules = get_current_modules_taken(student_id, driver)
@@ -177,28 +191,28 @@ def update_student_modules(student_id: str, modules: list[str], driver: Driver) 
 
     return modules
 
-def check_prerequisites_fulfillment(modules: list[ModuleDB]) -> list[str]:
-    in_degree: dict[str, list[set[str]]] = {}
-    out_degree: dict[str, list[str]] = {}
+# def check_prerequisites_fulfillment(modules: list[ModuleDB]) -> list[str]:
+#     in_degree: dict[str, list[set[str]]] = {}
+#     out_degree: dict[str, list[str]] = {}
 
-    for module in modules:
-        current_course_code: str = module.course_code
-        prereq_groups: list[PrerequisiteGroup] = module.prerequisites
+#     for module in modules:
+#         current_course_code: str = module.course_code
+#         prereq_groups: list[PrerequisiteGroup] = module.prerequisites
     
-        in_degree[current_course_code] = []
+#         in_degree[current_course_code] = []
 
-        if (prereq_groups is not None and prereq_groups):
-            for prerequisite_group in prereq_groups:
-                prereq_modules: list[ModuleDB] = prerequisite_group.modules
+#         if (prereq_groups is not None and prereq_groups):
+#             for prerequisite_group in prereq_groups:
+#                 prereq_modules: list[ModuleDB] = prerequisite_group.modules
 
-                for prereq_module in prereq_modules:
-                    if prereq_module.course_code not in out_degree:
-                        out_degree[prereq_module.course_code] = []
+#                 for prereq_module in prereq_modules:
+#                     if prereq_module.course_code not in out_degree:
+#                         out_degree[prereq_module.course_code] = []
 
-                    out_degree[prereq_module.course_code].append(current_course_code)
+#                     out_degree[prereq_module.course_code].append(current_course_code)
 
-            in_degree[current_course_code].append(
-                set(prereq_module.course_code for prereq_module in )
-            )
+#             in_degree[current_course_code].append(
+#                 set(prereq_module.course_code for prereq_module in )
+#             )
             
         
