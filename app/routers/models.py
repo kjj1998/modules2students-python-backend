@@ -72,30 +72,30 @@ class ModuleBase(BaseModel):
     mutually_exclusives: list[str] = []
 
 
-class PrerequisiteGroup(BaseModel):
-    """
-    Model for prerequisite groups
-    """
+# class PrerequisiteGroup(BaseModel):
+#     """
+#     Model for prerequisite groups
+#     """
 
-    group_id: str
-    modules: list[ModuleBase]
-
-
-class ModuleDTO(ModuleBase):
-    """
-    Model for module for data transfer to frontend
-    """
-
-    prerequisites: Union[list[list[str]], None] = None
-    mutually_exclusives: Union[list[str], None] = None
+#     group_id: str
+#     modules: list[ModuleBase]
 
 
-class ModuleDB(ModuleBase):
-    """
-    Model for modules in DB
-    """
+# class ModuleDTO(ModuleBase):
+#     """
+#     Model for module for data transfer to frontend
+#     """
 
-    prerequisites: Union[list[PrerequisiteGroup], None] = None
+#     prerequisites: Union[list[list[str]], None] = None
+#     mutually_exclusives: Union[list[str], None] = None
+
+
+# class ModuleDB(ModuleBase):
+#     """
+#     Model for modules in DB
+#     """
+
+#     prerequisites: Union[list[PrerequisiteGroup], None] = None
 
 
 class StudentBase(BaseModel):

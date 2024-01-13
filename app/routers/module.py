@@ -12,7 +12,7 @@ from .module_services import (
     search_modules,
     get_modules_course_codes,
     get_module,
-    get_faculties, 
+    get_faculties,
     get_modules_in_a_faculty,
     get_total_number_of_modules
 )
@@ -32,9 +32,7 @@ async def read_modules(
     
     """
 
-    modules = get_modules(skip, limit, driver)
-
-    return modules
+    return get_modules(skip, limit, driver)
 
 
 @router.get("/{course-code}", response_model=ModuleBase)
@@ -49,7 +47,7 @@ async def read_module(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No course code given"
         )
-    module = get_module(course_code, driver)
+    module: ModuleBase = get_module(course_code, driver)
     if module is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -70,9 +68,7 @@ async def search(
     
     """
 
-    modules = search_modules(search_term, skip, limit, driver)
-
-    return modules
+    return search_modules(search_term, skip, limit, driver)
 
 
 @router.get("/get/course-codes", response_model=list[str])
@@ -81,9 +77,7 @@ async def retrieve_course_codes(driver: Driver = Depends(get_db_driver)) -> list
     
     """
 
-    course_codes = get_modules_course_codes(driver)
-
-    return course_codes
+    return get_modules_course_codes(driver)
 
 
 @router.get("/get/faculties", response_model=list[str])
@@ -92,9 +86,7 @@ async def retrieve_faculties(driver: Driver = Depends(get_db_driver)) -> list[st
     
     """
 
-    faculties = get_faculties(driver)
-
-    return faculties
+    return get_faculties(driver)
 
 
 @router.get("/faculty/{faculty}", response_model=list[ModuleCourseCodeAndName])
@@ -105,9 +97,8 @@ async def retrieve_all_modules_in_a_faculty(
     
     """
 
-    modules = get_modules_in_a_faculty(faculty, driver)
+    return get_modules_in_a_faculty(faculty, driver)
 
-    return modules
 
 @router.get("/get/number-of-modules")
 async def retrieve_total_number_of_modules(driver: Driver = Depends(get_db_driver)) -> int:
