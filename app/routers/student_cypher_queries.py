@@ -8,7 +8,7 @@ GET_STUDENT = (
     "RETURN student.student_id as student_id, student.email as email, "
     "student.first_name as first_name, student.last_name as last_name, "
     "student.major as major, student.disciplines as disciplines, "
-    "student.year_of_study as year_of_study"
+    "student.year_of_study as year_of_study, student.password as password"
 )
 
 GET_STUDENT_MODULES = (

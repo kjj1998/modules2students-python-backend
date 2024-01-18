@@ -2,14 +2,30 @@
 """
 
 from collections import deque
-from fastapi import HTTPException, status
+from typing import Annotated
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer
 from neo4j import Driver
+from jose import JWTError, jwt
+
+import config # pylint: disable=import-error
 
 from . import db_functions
 from .models import StudentBase, ModuleBase
 
+ALGORITHM = "HS256"
 
-def get_student(student_id: str, driver: Driver) -> StudentBase:
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+settings = config.Settings()
+credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+async def get_student(
+    student_id: str, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
+) -> StudentBase:
     """Retrieve a student's information from the db.
 
     This function retrieves a student's information from the db
@@ -21,16 +37,34 @@ def get_student(student_id: str, driver: Driver) -> StudentBase:
         The id of the student whose information we want to retrieve.
       driver:
         An open instance of the neo4j.Driver.
+      token:
+        JWT access token.
 
     Returns:
       The information of the student encapsulated in a StudentBase model.
-      Returns None if the student does not exist.
+      Raises exceptions if there is an error.
     """
+    username: str = ""
 
-    return get_student(student_id, driver)
+    try:
+        payload: dict[str, any] = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        username = payload.get("user_id")
+        if username is None or username != student_id:
+            raise credentials_exception
+    except JWTError as exc:
+        raise credentials_exception from exc
+
+    student: StudentBase = db_functions.get_student(username, driver)
+
+    if student is None:
+        raise credentials_exception
+
+    return student
 
 
-def update_student_details(student_update: StudentBase, driver: Driver) -> StudentBase:
+async def update_student_details(
+    student_update: StudentBase, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
+) -> StudentBase:
     """Updates the details of the student in the db.
 
     Updates the details of the student in the db with the information
@@ -41,10 +75,25 @@ def update_student_details(student_update: StudentBase, driver: Driver) -> Stude
         A StudentBase model containing the information used to update the student's details.
       driver:
         An open instance of the neo4j.Driver.
+      token:
+        JWT access token.
 
     Returns:
       A StudentBase model containing the updated information.
     """
+    username: str = ""
+
+    try:
+        payload: dict[str, any] = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        username = payload.get("user_id")
+        if username is None or username != student_update.student_id:
+            raise credentials_exception
+    except JWTError as exc:
+        raise credentials_exception from exc
+    cur_student: StudentBase = db_functions.get_student(username, driver)
+
+    if cur_student is None:
+        raise credentials_exception
 
     updated_modules_course_codes: list[str] = student_update.course_codes
     updated_modules: list[ModuleBase] = db_functions.get_modules_based_on_course_codes(

@@ -4,7 +4,7 @@ Functions to interact with the db.
 
 from neo4j import Driver, Record, EagerResult
 
-from .models import ModuleBase, ModuleCourseCodeAndName, StudentBase
+from .models import ModuleBase, ModuleCourseCodeAndName, StudentBase, StudentDB
 from .module_cypher_queries import (
     GET_ALL_MODULES,
     GET_MODULE,
@@ -24,6 +24,8 @@ from .student_cypher_queries import (
     DELETE_MODULE_TAKEN,
     ADD_MODULE_TAKEN,
 )
+
+from .auth_cypher_queries import REGISTER_USER
 
 
 def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
@@ -58,7 +60,8 @@ def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
         data = record.data()
         module: ModuleBase = ModuleBase(**data)
         prereqs: list[list[str]] = get_prerequisite_groups_for_each_module(
-            data["course_code"], driver)
+            data["course_code"], driver
+        )
         mutuallly_exclusives: list[str] = get_mutually_exclusives_for_each_module(
             data["course_code"], driver
         )
@@ -69,10 +72,10 @@ def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
     return modules
 
 
-def get_modules_based_on_course_codes(course_codes: list[str], driver: Driver) -> list[ModuleBase]:
-    """Retreive modules based on their course codes.
-    
-    """
+def get_modules_based_on_course_codes(
+    course_codes: list[str], driver: Driver
+) -> list[ModuleBase]:
+    """Retreive modules based on their course codes."""
     modules: list[ModuleBase] = []
 
     for course_code in course_codes:
@@ -83,7 +86,9 @@ def get_modules_based_on_course_codes(course_codes: list[str], driver: Driver) -
     return modules
 
 
-def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver) -> list[list[str]]:
+def get_prerequisite_groups_for_each_module(
+    course_code: str, driver: Driver
+) -> list[list[str]]:
     """Retrieves all prerequisite groups for a module.
 
     Retrieves all prerequisite groups for a module which is
@@ -115,7 +120,9 @@ def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver) ->
     return prerequisite_groups
 
 
-def get_mutually_exclusives_for_each_module(course_code: str, driver: Driver) -> list[str]:
+def get_mutually_exclusives_for_each_module(
+    course_code: str, driver: Driver
+) -> list[str]:
     """
     Retreive the modules that are mutually exclusive to the current module.
 
@@ -177,8 +184,12 @@ def get_module(course_code: str, driver: Driver) -> ModuleBase:
 
     data: dict[str, any] = records[0].data()
     module: ModuleBase = ModuleBase(**data)
-    prerequisites: list[list[str]] = get_prerequisite_groups_for_each_module(course_code, driver)
-    mutually_exclusives: list[str] = get_mutually_exclusives_for_each_module(course_code, driver)
+    prerequisites: list[list[str]] = get_prerequisite_groups_for_each_module(
+        course_code, driver
+    )
+    mutually_exclusives: list[str] = get_mutually_exclusives_for_each_module(
+        course_code, driver
+    )
 
     module.prerequisites = prerequisites
     module.mutually_exclusives = mutually_exclusives
@@ -186,7 +197,9 @@ def get_module(course_code: str, driver: Driver) -> ModuleBase:
     return module
 
 
-def search_modules(search_term: str, skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
+def search_modules(
+    search_term: str, skip: int, limit: int, driver: Driver
+) -> list[ModuleBase]:
     """Searches for modules based on a search term.
 
     Searches for relevant modules based on the provided search term.
@@ -278,7 +291,9 @@ def get_faculties(driver: Driver) -> list[str]:
     return faculties
 
 
-def get_modules_in_a_faculty(faculty: str, driver: Driver) -> list[ModuleCourseCodeAndName]:
+def get_modules_in_a_faculty(
+    faculty: str, driver: Driver
+) -> list[ModuleCourseCodeAndName]:
     """Retrieves all modules that belong to a faculty.
 
     Retrieves all modules that belong to a specific faculty
@@ -296,7 +311,9 @@ def get_modules_in_a_faculty(faculty: str, driver: Driver) -> list[ModuleCourseC
     """
     query: str = GET_MODULES_FOR_A_FACULTY
 
-    eager_result: EagerResult = driver.execute_query(query, faculty=faculty, database_="neo4j")
+    eager_result: EagerResult = driver.execute_query(
+        query, faculty=faculty, database_="neo4j"
+    )
     records: list[Record] = eager_result.records
     modules: list[ModuleCourseCodeAndName] = []
 
@@ -326,7 +343,7 @@ def get_total_number_of_modules(driver: Driver) -> int:
     return records[0].data()["total"]
 
 
-def get_student(student_id: str, driver: Driver) -> StudentBase:
+def get_student(student_id: str, driver: Driver) -> StudentDB:
     """Retrieve a student's information from the db.
 
     This function retrieves a student's information from the db
@@ -351,13 +368,13 @@ def get_student(student_id: str, driver: Driver) -> StudentBase:
         database_="neo4j",
     )
     records: list[Record] = eager_result.records
-    student: StudentBase = None
+    student: StudentDB = None
 
     if len(records) == 0:
         return None
 
     data: dict[str, any] = records[0].data()
-    student: StudentBase = StudentBase(**data)
+    student = StudentDB(**data)
     modules_taken: list[str] = get_student_courses(student_id, driver)
     student.course_codes = modules_taken
 
@@ -383,7 +400,8 @@ def get_student_courses(student_id: str, driver: Driver) -> list[str]:
     query: str = GET_STUDENT_MODULES
 
     eager_result: EagerResult = driver.execute_query(
-        query, student_id=student_id, database_="neo4j")
+        query, student_id=student_id, database_="neo4j"
+    )
     records: list[Record] = eager_result.records
     modules: list[str] = []
 
@@ -484,6 +502,7 @@ def add_modules(student_id: str, modules_to_be_added: list[str], driver: Driver)
             database_="neo4j",
         )
 
+
 def update_student(student_update: StudentBase, driver: Driver) -> StudentBase:
     """Function to update a student in the db."""
     query: str = UPDATE_STUDENT
@@ -506,3 +525,21 @@ def update_student(student_update: StudentBase, driver: Driver) -> StudentBase:
     updated_student: StudentBase = StudentBase(**data)
 
     return updated_student
+
+
+def register_student(new_student: StudentDB, hashed_password: str, driver: Driver):
+    """Function to register a student in the db."""
+    query: str = REGISTER_USER
+
+    driver.execute_query(
+        query,
+        student_id=new_student.student_id,
+        email=new_student.email,
+        password=hashed_password,
+        major=new_student.major,
+        first_name=new_student.first_name,
+        last_name=new_student.last_name,
+        year_of_study=new_student.year_of_study,
+        disciplines=new_student.disciplines,
+        database_="neo4j",
+    )
