@@ -27,6 +27,13 @@ from .student_cypher_queries import (
 
 from .auth_cypher_queries import REGISTER_USER
 
+from .recommendation_cypher_queries import (
+    GET_CB_MODULES_THAT_FULFILL_PREREQS,
+    GET_CB_MODULES_WITH_NO_PREREQS,
+    GET_CF_MODULES_THAT_FULFILL_PREREQS,
+    GET_CF_MODULES_WITH_NO_PREREQS
+)
+
 
 def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
     """Retrieves modules from the db.
@@ -543,3 +550,87 @@ def register_student(new_student: StudentDB, hashed_password: str, driver: Drive
         disciplines=new_student.disciplines,
         database_="neo4j",
     )
+
+
+def get_cb_recs_that_fulfil_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
+    """Function to get content-based recommendations that fulfil prerequisites."""
+    query: str = GET_CB_MODULES_THAT_FULFILL_PREREQS
+
+    eager_result: EagerResult = driver.execute_query(
+        query,
+        student_id=student_id,
+        database_="neo4j",
+    )
+
+    records: list[Record] = eager_result.records
+    modules: list[ModuleBase] = []
+
+    for record in records:
+        data: dict[str, any] = record.data()
+        module: ModuleBase = ModuleBase(**data)
+        modules.append(module)
+
+    return modules
+
+
+def get_cb_recs_that_have_no_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
+    """Function to get content-based recommendations that have no prerequisites."""
+    query: str = GET_CB_MODULES_WITH_NO_PREREQS
+
+    eager_result: EagerResult = driver.execute_query(
+        query,
+        student_id=student_id,
+        database_="neo4j"
+    )
+
+    records: list[Record] = eager_result.records
+    modules: list[ModuleBase] = []
+
+    for record in records:
+        data: dict[str, any] = record.data()
+        module: ModuleBase = ModuleBase(**data)
+        modules.append(module)
+
+    return modules
+
+
+def get_cf_recs_that_fulfill_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
+    """Function to get collaborative filtering recommendations that fulfill prerequisites."""
+    query: str = GET_CF_MODULES_THAT_FULFILL_PREREQS
+
+    eager_result: EagerResult = driver.execute_query(
+        query,
+        student_id=student_id,
+        database_="neo4j"
+    )
+
+    records: list[Record] = eager_result.records
+    modules: list[ModuleBase] = []
+
+    for record in records:
+        data: dict[str, any] = record.data()
+        module: ModuleBase = ModuleBase(**data)
+        modules.append(module)
+    
+    return modules
+
+
+def get_cf_recs_that_have_no_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
+    """Function to get collaborative filtering recommendations that have no prerequisites."""
+    query: str = GET_CF_MODULES_WITH_NO_PREREQS
+
+    eager_result: EagerResult = driver.execute_query(
+        query,
+        student_id=student_id,
+        database_="neo4j"
+    )
+
+    records: list[Record] = eager_result.records
+    modules: list[ModuleBase] = []
+
+    for record in records:
+        data: dict[str, any] = record.data()
+        module: ModuleBase = ModuleBase(**data)
+        modules.append(module)
+    
+    return modules

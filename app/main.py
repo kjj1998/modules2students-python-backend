@@ -5,12 +5,14 @@ from fastapi import FastAPI
 from routers import module # pylint: disable=import-error
 from routers import student # pylint: disable=import-error
 from routers import auth # pylint: disable=import-error
+from routers import recommendation # pylint: disable=import-error
 
 app = FastAPI()
 
 app.include_router(module.router)
 app.include_router(student.router)
 app.include_router(auth.router)
+app.include_router(recommendation.router)
 
 @app.get("/")
 async def root():

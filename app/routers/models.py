@@ -14,9 +14,9 @@ class ModuleCourseCodeAndName(BaseModel):
     course name of a module.
 
     Attributes:
-      course_code: 
+      course_code:
         The course code of the module represented as a string.
-      course_name: 
+      course_name:
         The name of the module represented as a string.
     """
 
@@ -71,6 +71,7 @@ class ModuleBase(BaseModel):
     total: Union[int, None] = None
     prerequisites: list[list[str]] = []
     mutually_exclusives: list[str] = []
+    score: float = 0.0
 
 
 # class PrerequisiteGroup(BaseModel):
@@ -134,6 +135,7 @@ class StudentBase(BaseModel):
     disciplines: Union[list[str], None] = None
     course_codes: Union[list[str], None] = None
 
+
 class StudentDB(StudentBase):
     """DB Model for representing students.
 
@@ -168,7 +170,7 @@ class RegistrationModel(BaseModel):
 
 class AuthenticationModel(BaseModel):
     """Model to login and authenticate existing users.
-    
+
     This is a Pydantic model for login of existing users.
 
     Attributes:
@@ -196,3 +198,19 @@ class AuthenticationResponseModel(BaseModel):
 
     access_token: str
     user_id: str
+
+
+class RecommendationModel(BaseModel):
+    """Model for recommendations
+
+    This is a Pydantic model for the modules recommendations of users.
+
+    Attributes:
+      cf_recommendations:
+        The list of modules recommended through collaborative filtering.
+      cbf_recommendations:
+        The list of modules recommended through content-based filtering.
+    """
+
+    cf_recommendations: list[ModuleBase] = []
+    cbf_recommendations: list[ModuleBase] = []
