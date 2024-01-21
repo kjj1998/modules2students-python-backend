@@ -1,11 +1,10 @@
 """
-Functions to interact with the db.
+Functions to interact with the db for module data
 """
 
 from neo4j import Driver, Record, EagerResult
 
-from .models import ModuleBase, ModuleCourseCodeAndName, StudentBase, StudentDB
-from .module_cypher_queries import (
+from ..queries.module_cypher_queries import (
     GET_ALL_MODULES,
     GET_MODULE,
     SEARCH_MODULES,
@@ -17,25 +16,10 @@ from .module_cypher_queries import (
     GET_TOTAL_NUMBER_OF_MODULES,
 )
 
-from .student_cypher_queries import (
-    GET_STUDENT,
-    GET_STUDENT_MODULES,
-    UPDATE_STUDENT,
-    DELETE_MODULE_TAKEN,
-    ADD_MODULE_TAKEN,
-)
-
-from .auth_cypher_queries import REGISTER_USER
-
-from .recommendation_cypher_queries import (
-    GET_CB_MODULES_THAT_FULFILL_PREREQS,
-    GET_CB_MODULES_WITH_NO_PREREQS,
-    GET_CF_MODULES_THAT_FULFILL_PREREQS,
-    GET_CF_MODULES_WITH_NO_PREREQS
-)
+from ..models.module import Module, ModuleCourseCodeAndName
 
 
-def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
+def get_modules(skip: int, limit: int, driver: Driver) -> list[Module]:
     """Retrieves modules from the db.
 
     Retrieves modules from the db based on the
@@ -61,11 +45,11 @@ def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
         database_="neo4j",
     )
     records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
+    modules: list[Module] = []
 
     for record in records:
         data = record.data()
-        module: ModuleBase = ModuleBase(**data)
+        module: Module = Module(**data)
         prereqs: list[list[str]] = get_prerequisite_groups_for_each_module(
             data["course_code"], driver
         )
@@ -81,12 +65,12 @@ def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
 
 def get_modules_based_on_course_codes(
     course_codes: list[str], driver: Driver
-) -> list[ModuleBase]:
+) -> list[Module]:
     """Retreive modules based on their course codes."""
-    modules: list[ModuleBase] = []
+    modules: list[Module] = []
 
     for course_code in course_codes:
-        module: ModuleBase = get_module(course_code, driver)
+        module: Module = get_module(course_code, driver)
         if module is not None:
             modules.append(module)
 
@@ -160,7 +144,7 @@ def get_mutually_exclusives_for_each_module(
     return mutually_exclusives
 
 
-def get_module(course_code: str, driver: Driver) -> ModuleBase:
+def get_module(course_code: str, driver: Driver) -> Module:
     """Retrieves a single module from the db
 
     Retrieves a single module from the db based
@@ -184,13 +168,13 @@ def get_module(course_code: str, driver: Driver) -> ModuleBase:
         database_="neo4j",
     )
     records: list[Record] = eager_result.records
-    module: ModuleBase = None
+    module: Module = None
 
     if len(records) == 0:
         return None
 
     data: dict[str, any] = records[0].data()
-    module: ModuleBase = ModuleBase(**data)
+    module: Module = Module(**data)
     prerequisites: list[list[str]] = get_prerequisite_groups_for_each_module(
         course_code, driver
     )
@@ -206,7 +190,7 @@ def get_module(course_code: str, driver: Driver) -> ModuleBase:
 
 def search_modules(
     search_term: str, skip: int, limit: int, driver: Driver
-) -> list[ModuleBase]:
+) -> list[Module]:
     """Searches for modules based on a search term.
 
     Searches for relevant modules based on the provided search term.
@@ -236,11 +220,11 @@ def search_modules(
         database_="neo4j",
     )
     records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
+    modules: list[Module] = []
 
     for record in records:
         data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
+        module: Module = Module(**data)
         modules.append(module)
 
     return modules
@@ -350,75 +334,6 @@ def get_total_number_of_modules(driver: Driver) -> int:
     return records[0].data()["total"]
 
 
-def get_student(student_id: str, driver: Driver) -> StudentDB:
-    """Retrieve a student's information from the db.
-
-    This function retrieves a student's information from the db
-    based on the student id supplied. The function takes in the
-    student id and an open instance of the neo4j.Driver.
-
-    Args:
-      student_id:
-        The id of the student whose information we want to retrieve.
-      driver:
-        An open instance of the neo4j.Driver.
-
-    Returns:
-      The information of the student encapsulated in a StudentBase model.
-      Returns None if the student does not exist.
-    """
-    query: str = GET_STUDENT
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_id,
-        database_="neo4j",
-    )
-    records: list[Record] = eager_result.records
-    student: StudentDB = None
-
-    if len(records) == 0:
-        return None
-
-    data: dict[str, any] = records[0].data()
-    student = StudentDB(**data)
-    modules_taken: list[str] = get_student_courses(student_id, driver)
-    student.course_codes = modules_taken
-
-    return student
-
-
-def get_student_courses(student_id: str, driver: Driver) -> list[str]:
-    """Retrieves the modules that the student has taken.
-
-    This function retrieves the modules that the student has taken represented
-    as a list of course codes.
-
-    Args:
-      student_id:
-        The id of the student from which to retrieve its modules taken.
-      driveR:
-        An open instance of the neo4j.Driver.
-
-    Returns:
-      A list of strings which represent the modules that the student have taken.
-
-    """
-    query: str = GET_STUDENT_MODULES
-
-    eager_result: EagerResult = driver.execute_query(
-        query, student_id=student_id, database_="neo4j"
-    )
-    records: list[Record] = eager_result.records
-    modules: list[str] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        modules.append(data["course_code"])
-
-    return modules
-
-
 def search_for_modules(modules: list[str], driver: Driver) -> list[str]:
     """Checks whether a list of modules exist in the db.
 
@@ -454,183 +369,3 @@ def search_for_modules(modules: list[str], driver: Driver) -> list[str]:
         retrieved_modules.append(data["course_code"])
 
     return retrieved_modules
-
-
-def get_modules_currently_taken(student_id: str, driver: Driver) -> list[ModuleBase]:
-    """Function to retrieve a list of modules currently taken by the user."""
-    get_current_modules_query: str = GET_STUDENT_MODULES
-
-    current_modules_eager_result: EagerResult = driver.execute_query(
-        get_current_modules_query, student_id=student_id, database_="neo4j"
-    )
-    records: list[Record] = current_modules_eager_result.records
-    current_modules: list[ModuleBase] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
-        course_code: str = module["course_code"]
-        prerequisites: list[list[str]] = get_prerequisite_groups_for_each_module(
-            course_code, driver
-        )
-        mutually_exclusives: list[str] = get_mutually_exclusives_for_each_module(
-            course_code, driver
-        )
-
-        module.prerequisites: list[list[str]] = prerequisites
-        module.mutually_exclusives: list[str] = mutually_exclusives
-        current_modules.append(module)
-
-    return current_modules
-
-
-def remove_modules(student_id: str, modules_to_be_removed: list[str], driver: Driver):
-    """Function to remove modules taken by a student"""
-    remove_module_taken_query: str = DELETE_MODULE_TAKEN
-
-    for module in modules_to_be_removed:
-        driver.execute_query(
-            remove_module_taken_query,
-            student_id=student_id,
-            course_code=module,
-            database_="neo4j",
-        )
-
-
-def add_modules(student_id: str, modules_to_be_added: list[str], driver: Driver):
-    """Function to add new modules taken by a student"""
-    add_module_taken_query: str = ADD_MODULE_TAKEN
-
-    for module in modules_to_be_added:
-        driver.execute_query(
-            add_module_taken_query,
-            student_id=student_id,
-            course_code=module,
-            database_="neo4j",
-        )
-
-
-def update_student(student_update: StudentBase, driver: Driver) -> StudentBase:
-    """Function to update a student in the db."""
-    query: str = UPDATE_STUDENT
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_update.student_id,
-        student_email=student_update.email,
-        major=student_update.major,
-        first_name=student_update.first_name,
-        last_name=student_update.last_name,
-        year_of_study=student_update.year_of_study,
-        email=student_update.email,
-        disciplines=student_update.disciplines,
-        database_="neo4j",
-    )
-    records: list[Record] = eager_result.records
-
-    data: dict[str, any] = records[0].data()
-    updated_student: StudentBase = StudentBase(**data)
-
-    return updated_student
-
-
-def register_student(new_student: StudentDB, hashed_password: str, driver: Driver):
-    """Function to register a student in the db."""
-    query: str = REGISTER_USER
-
-    driver.execute_query(
-        query,
-        student_id=new_student.student_id,
-        email=new_student.email,
-        password=hashed_password,
-        major=new_student.major,
-        first_name=new_student.first_name,
-        last_name=new_student.last_name,
-        year_of_study=new_student.year_of_study,
-        disciplines=new_student.disciplines,
-        database_="neo4j",
-    )
-
-
-def get_cb_recs_that_fulfil_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
-    """Function to get content-based recommendations that fulfil prerequisites."""
-    query: str = GET_CB_MODULES_THAT_FULFILL_PREREQS
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_id,
-        database_="neo4j",
-    )
-
-    records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
-        modules.append(module)
-
-    return modules
-
-
-def get_cb_recs_that_have_no_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
-    """Function to get content-based recommendations that have no prerequisites."""
-    query: str = GET_CB_MODULES_WITH_NO_PREREQS
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_id,
-        database_="neo4j"
-    )
-
-    records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
-        modules.append(module)
-
-    return modules
-
-
-def get_cf_recs_that_fulfill_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
-    """Function to get collaborative filtering recommendations that fulfill prerequisites."""
-    query: str = GET_CF_MODULES_THAT_FULFILL_PREREQS
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_id,
-        database_="neo4j"
-    )
-
-    records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
-        modules.append(module)
-    
-    return modules
-
-
-def get_cf_recs_that_have_no_prereq(student_id: str, driver: Driver) -> list[ModuleBase]:
-    """Function to get collaborative filtering recommendations that have no prerequisites."""
-    query: str = GET_CF_MODULES_WITH_NO_PREREQS
-
-    eager_result: EagerResult = driver.execute_query(
-        query,
-        student_id=student_id,
-        database_="neo4j"
-    )
-
-    records: list[Record] = eager_result.records
-    modules: list[ModuleBase] = []
-
-    for record in records:
-        data: dict[str, any] = record.data()
-        module: ModuleBase = ModuleBase(**data)
-        modules.append(module)
-    
-    return modules

@@ -2,10 +2,10 @@
 Main module of the module2student Python backend
 """
 from fastapi import FastAPI
-from routers import module # pylint: disable=import-error
-from routers import student # pylint: disable=import-error
-from routers import auth # pylint: disable=import-error
-from routers import recommendation # pylint: disable=import-error
+from .routers import module # pylint: disable=import-error
+from .routers import student # pylint: disable=import-error
+from .routers import auth # pylint: disable=import-error
+from .routers import recommendation # pylint: disable=import-error
 
 app = FastAPI()
 

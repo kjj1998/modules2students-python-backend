@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from neo4j import Driver
-from dependencies import get_db_driver  # pylint: disable=import-error
+from ..dependencies import get_db_driver  # pylint: disable=import-error
 from .models import StudentBase, RecommendationModel
 from .recommendation_services import get_recommendations
 

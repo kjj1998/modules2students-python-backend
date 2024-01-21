@@ -1,24 +1,16 @@
 """Authentication functions."""
 
 from datetime import datetime, timedelta, timezone
-import config  # pylint: disable=import-error
-
 from neo4j import Driver
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
-
 from passlib.context import CryptContext
 
-
-from . import db_functions
-from .models import (
-    AuthenticationResponseModel,
-    RegistrationModel,
-    StudentBase,
-    AuthenticationModel,
-    StudentDB,
-)
+from .. import config
+from ..database import auth_db, student_db
+from ..models.auth import AuthenticationResponse, Registration, Authentication
+from ..models.student import Student, StudentDB
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -56,8 +48,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def register(
-    registeration_details: RegistrationModel, driver: Driver
-) -> AuthenticationResponseModel:
+    registeration_details: Registration, driver: Driver
+) -> AuthenticationResponse:
     """Register a user
 
     Register a user using the credentials supplied in the RegistrationModel
@@ -74,33 +66,33 @@ def register(
       The AuthenticationResponseModel after registration.
     """
 
-    if db_functions.get_student(registeration_details.student_id, driver) is not None:
+    if student_db.get_student(registeration_details.student_id, driver) is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Student with id ${registeration_details.student_id} already exists!",
         )
 
-    new_student: StudentBase = StudentBase(
+    new_student: Student = Student(
         student_id=registeration_details.student_id,
         email=registeration_details.email,
     )
 
     hashed_password = get_password_hash(registeration_details.password)
-    db_functions.register_student(new_student, hashed_password, driver)
+    auth_db.register_student(new_student, hashed_password, driver)
 
     access_token = create_access_token(new_student, access_token_expires)
 
-    return AuthenticationResponseModel(
+    return AuthenticationResponse(
         access_token=access_token, user_id=registeration_details.student_id
     )
 
 
 def authenticate_user(
-    authenticate_details: AuthenticationModel, driver: Driver
-) -> AuthenticationResponseModel:
+    authenticate_details: Authentication, driver: Driver
+) -> AuthenticationResponse:
     """Authtenticate existing users."""
 
-    student: StudentDB = db_functions.get_student(
+    student: StudentDB = student_db.get_student(
         authenticate_details.username, driver
     )
 
@@ -118,6 +110,6 @@ def authenticate_user(
 
     access_token = create_access_token(student, access_token_expires)
 
-    return AuthenticationResponseModel(
+    return AuthenticationResponse(
         access_token=access_token, user_id=authenticate_details.username
     )

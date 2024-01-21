@@ -7,15 +7,15 @@ deals with modules
 
 from neo4j import Driver, EagerResult, Record
 
-from . import db_functions
-from .models import ModuleBase, ModuleCourseCodeAndName
-from .module_cypher_queries import (
+from ..database import module_db
+from ..models.module import Module, ModuleCourseCodeAndName
+from ..queries.module_cypher_queries import (
     GET_PREREQUISITE_GROUPS_FOR_EACH_MODULE,
     GET_MUTUALLY_EXCLUSIVES_FOR_EACH_MODULE,
 )
 
 
-def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
+def get_modules(skip: int, limit: int, driver: Driver) -> list[Module]:
     """Retrieves modules from the db.
 
     Retrieves modules from the db based on the
@@ -33,10 +33,10 @@ def get_modules(skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
       A list of Modules
     """
 
-    return db_functions.get_modules(skip, limit, driver)
+    return module_db.get_modules(skip, limit, driver)
 
 
-def get_module(course_code: str, driver: Driver) -> ModuleBase:
+def get_module(course_code: str, driver: Driver) -> Module:
     """Retrieves a single module from the db
 
     Retrieves a single module from the db based
@@ -53,10 +53,10 @@ def get_module(course_code: str, driver: Driver) -> ModuleBase:
       given course code exists.
     """
 
-    return db_functions.get_module(course_code, driver)
+    return module_db.get_module(course_code, driver)
 
 
-def search_modules(search_term: str, skip: int, limit: int, driver: Driver) -> list[ModuleBase]:
+def search_modules(search_term: str, skip: int, limit: int, driver: Driver) -> list[Module]:
     """Searches for modules based on a search term.
 
     Searches for relevant modules based on the provided search term.
@@ -77,7 +77,7 @@ def search_modules(search_term: str, skip: int, limit: int, driver: Driver) -> l
       A list of modules that are relevant to the search term.
     """
 
-    return db_functions.search_modules(search_term, skip, limit, driver)
+    return module_db.search_modules(search_term, skip, limit, driver)
 
 
 def get_modules_course_codes(driver: Driver) -> list[str]:
@@ -94,7 +94,7 @@ def get_modules_course_codes(driver: Driver) -> list[str]:
       A list of course codes of all the modules in the db.
     """
 
-    return db_functions.get_modules_course_codes(driver)
+    return module_db.get_modules_course_codes(driver)
 
 
 def get_faculties(driver: Driver) -> list[str]:
@@ -111,7 +111,7 @@ def get_faculties(driver: Driver) -> list[str]:
       A list of all the faculties that modules can belong to.
     """
 
-    return db_functions.get_faculties(driver)
+    return module_db.get_faculties(driver)
 
 
 def get_modules_in_a_faculty(faculty: str, driver: Driver) -> list[ModuleCourseCodeAndName]:
@@ -131,7 +131,7 @@ def get_modules_in_a_faculty(faculty: str, driver: Driver) -> list[ModuleCourseC
       A list of all modules that belong to a specific faculty.
     """
 
-    return db_functions.get_modules_in_a_faculty(faculty, driver)
+    return module_db.get_modules_in_a_faculty(faculty, driver)
 
 
 def get_prerequisite_groups_for_each_module(course_code: str, driver: Driver) -> list[list[str]]:
@@ -208,4 +208,4 @@ def get_total_number_of_modules(driver: Driver) -> int:
       The total number of modules in the db.
     """
 
-    return db_functions.get_total_number_of_modules(driver)
+    return module_db.get_total_number_of_modules(driver)

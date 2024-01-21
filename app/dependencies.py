@@ -1,7 +1,7 @@
 """
 Dependencies
 """
-import config  # pylint: disable=import-error
+from . import config  # pylint: disable=import-error
 from neo4j import GraphDatabase
 
 

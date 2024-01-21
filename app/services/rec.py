@@ -2,17 +2,16 @@
 CRUD utility functions for recommendation endpoints.
 """
 
-from collections import deque
 from typing import Annotated
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from neo4j import Driver
 from jose import JWTError, jwt
 
-import config  # pylint: disable=import-error
-
-from . import db_functions
-from .models import StudentBase, ModuleBase, RecommendationModel
+from .. import config
+from ..database import rec_db
+from ..models.module import Module
+from ..models.rec import Recommendation
 
 ALGORITHM = "HS256"
 
@@ -27,7 +26,7 @@ credentials_exception = HTTPException(
 
 async def get_recommendations(
     student_id: str, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
-) -> RecommendationModel:
+) -> Recommendation:
     """Retrieve a student's recommendations from the db.
 
     This function retrieves a student's recommendations from the db
@@ -59,30 +58,30 @@ async def get_recommendations(
     except JWTError as exc:
         raise credentials_exception from exc
 
-    recs: RecommendationModel = RecommendationModel()
+    recs: Recommendation = Recommendation()
 
     cb_recs_fulfil_prereq: list[
-        ModuleBase
-    ] = db_functions.get_cb_recs_that_fulfil_prereq(username, driver)
+        Module
+    ] = rec_db.get_cb_recs_that_fulfil_prereq(username, driver)
 
-    cb_recs_no_prereq: list[ModuleBase] = db_functions.get_cb_recs_that_have_no_prereq(
+    cb_recs_no_prereq: list[Module] = rec_db.get_cb_recs_that_have_no_prereq(
         username, driver
     )
 
     cf_recs_fulfill_prereq: list[
-        ModuleBase
-    ] = db_functions.get_cf_recs_that_fulfill_prereq(username, driver)
-    cf_recs_no_prereq: list[ModuleBase] = db_functions.get_cf_recs_that_have_no_prereq(
+        Module
+    ] = rec_db.get_cf_recs_that_fulfill_prereq(username, driver)
+    cf_recs_no_prereq: list[Module] = rec_db.get_cf_recs_that_have_no_prereq(
         username, driver
     )
 
-    cb_recs: list[ModuleBase] = cb_recs_no_prereq + cb_recs_fulfil_prereq
-    cf_recs: list[ModuleBase] = cf_recs_no_prereq + cf_recs_fulfill_prereq
+    cb_recs: list[Module] = cb_recs_no_prereq + cb_recs_fulfil_prereq
+    cf_recs: list[Module] = cf_recs_no_prereq + cf_recs_fulfill_prereq
 
     cb_recs.sort(key=lambda x: x.score , reverse=True)
 
-    cb_recs_top_10: list[ModuleBase] = cb_recs[:10]
-    cf_recs_top_10: list[ModuleBase] = cf_recs[:10]
+    cb_recs_top_10: list[Module] = cb_recs[:10]
+    cf_recs_top_10: list[Module] = cf_recs[:10]
 
     recs.cbf_recommendations = cb_recs_top_10
     recs.cf_recommendations = cf_recs_top_10

@@ -5,9 +5,9 @@ This module contains the various API endpoints for modules operations.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from neo4j import Driver
-from dependencies import get_db_driver  # pylint: disable=import-error
-from .models import ModuleBase, ModuleCourseCodeAndName
-from .module_services import (
+from ..dependencies import get_db_driver  # pylint: disable=import-error
+from ..models.module import Module, ModuleCourseCodeAndName
+from ..services.module import (
     get_modules,
     search_modules,
     get_modules_course_codes,
@@ -22,12 +22,12 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[ModuleBase])
+@router.get("/", response_model=list[Module])
 async def read_modules(
     skip: int = 0,
     limit: int = 10,
     driver: Driver = Depends(get_db_driver)
-) -> list[ModuleBase]:
+) -> list[Module]:
     """API endpoint to read modules data from the db.
     
     """
@@ -35,10 +35,10 @@ async def read_modules(
     return get_modules(skip, limit, driver)
 
 
-@router.get("/{course-code}", response_model=ModuleBase)
+@router.get("/{course-code}", response_model=Module)
 async def read_module(
     course_code: str | None = None, driver: Driver = Depends(get_db_driver)
-) -> ModuleBase:
+) -> Module:
     """API endpoint to read a single module from the db.
     
     """
@@ -47,7 +47,7 @@ async def read_module(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No course code given"
         )
-    module: ModuleBase = get_module(course_code, driver)
+    module: Module = get_module(course_code, driver)
     if module is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -57,13 +57,13 @@ async def read_module(
     return module
 
 
-@router.get("/search/{search-term}", response_model=list[ModuleBase])
+@router.get("/search/{search-term}", response_model=list[Module])
 async def search(
     search_term: str,
     skip: int = 0,
     limit: int = 10,
     driver: Driver = Depends(get_db_driver),
-) -> list[ModuleBase]:
+) -> list[Module]:
     """API endpoint to search for relevant modules based on a search term.
     
     """

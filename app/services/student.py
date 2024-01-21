@@ -8,10 +8,10 @@ from fastapi.security import OAuth2PasswordBearer
 from neo4j import Driver
 from jose import JWTError, jwt
 
-import config # pylint: disable=import-error
-
-from . import db_functions
-from .models import StudentBase, ModuleBase
+from .. import config
+from ..models.student import Student
+from ..models.module import Module
+from ..database import module_db, student_db
 
 ALGORITHM = "HS256"
 
@@ -25,7 +25,7 @@ credentials_exception = HTTPException(
 
 async def get_student(
     student_id: str, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
-) -> StudentBase:
+) -> Student:
     """Retrieve a student's information from the db.
 
     This function retrieves a student's information from the db
@@ -54,7 +54,7 @@ async def get_student(
     except JWTError as exc:
         raise credentials_exception from exc
 
-    student: StudentBase = db_functions.get_student(username, driver)
+    student: Student = student_db.get_student(username, driver)
 
     if student is None:
         raise credentials_exception
@@ -63,8 +63,8 @@ async def get_student(
 
 
 async def update_student_details(
-    student_update: StudentBase, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
-) -> StudentBase:
+    student_update: Student, driver: Driver, token: Annotated[str, Depends(oauth2_scheme)]
+) -> Student:
     """Updates the details of the student in the db.
 
     Updates the details of the student in the db with the information
@@ -90,13 +90,13 @@ async def update_student_details(
             raise credentials_exception
     except JWTError as exc:
         raise credentials_exception from exc
-    cur_student: StudentBase = db_functions.get_student(username, driver)
+    cur_student: Student = student_db.get_student(username, driver)
 
     if cur_student is None:
         raise credentials_exception
 
     updated_modules_course_codes: list[str] = student_update.course_codes
-    updated_modules: list[ModuleBase] = db_functions.get_modules_based_on_course_codes(
+    updated_modules: list[Module] = module_db.get_modules_based_on_course_codes(
         updated_modules_course_codes, driver)
 
     if len(updated_modules_course_codes) != len(updated_modules):
@@ -114,7 +114,7 @@ async def update_student_details(
             detail="Prerequisites have not been fulfilled for some of the modules."
         )
 
-    updated_student: StudentBase = db_functions.update_student(student_update, driver)
+    updated_student: Student = student_db.update_student(student_update, driver)
 
     updated_modules_course_codes = update_student_modules(
         student_update.student_id, student_update.course_codes, driver
@@ -141,12 +141,12 @@ def search_for_modules(modules: list[str], driver: Driver) -> list[str]:
       the db.
     """
 
-    return db_functions.search_for_modules(modules, driver)
+    return module_db.search_for_modules(modules, driver)
 
 
 def check_modules_existence(modules: list[str], driver: Driver) -> bool:
     """Function to check whether the list of modules exist in the db"""
-    retrieved_modules: list[str] = db_functions.search_for_modules(modules, driver)
+    retrieved_modules: list[str] = module_db.search_for_modules(modules, driver)
 
     return len(retrieved_modules) == len(modules)
 
@@ -160,20 +160,20 @@ def update_student_modules(student_id: str, modules: list[str], driver: Driver) 
             detail="Some of the course codes entered are invalid!",
         )
 
-    current_modules: list[ModuleBase] = db_functions.get_modules_currently_taken(student_id, driver)
+    current_modules: list[Module] = student_db.get_modules_currently_taken(student_id, driver)
     current_modules_set: set[str] = set(current_module.course_code
                                         for current_module in current_modules)
     new_modules_set: set[str] = set(modules)
     modules_to_be_removed: list[str] = list(current_modules_set.difference(new_modules_set))
     modules_to_be_added: list[str] = list(new_modules_set.difference(current_modules_set))
 
-    db_functions.remove_modules(student_id, modules_to_be_removed, driver)
-    db_functions.add_modules(student_id, modules_to_be_added, driver)
+    student_db.remove_modules(student_id, modules_to_be_removed, driver)
+    student_db.add_modules(student_id, modules_to_be_added, driver)
 
     return modules
 
 
-def check_prerequisites_fulfillment(modules: list[ModuleBase], driver: Driver) -> list[str]: # pylint: disable=too-many-locals
+def check_prerequisites_fulfillment(modules: list[Module], driver: Driver) -> list[str]: # pylint: disable=too-many-locals
     """Checks whether the list of modules fulfil their prerequisites.
 
     Checks whether the list of modules fulfil their prerequisites that is to
@@ -199,7 +199,7 @@ def check_prerequisites_fulfillment(modules: list[ModuleBase], driver: Driver) -
 
         if prereq_groups is not None and prereq_groups:
             for prerequisite_group in prereq_groups:
-                prereq_modules: list[ModuleBase] = db_functions.get_modules_based_on_course_codes(
+                prereq_modules: list[Module] = module_db.get_modules_based_on_course_codes(
                     prerequisite_group, driver)
 
                 for prereq_module in prereq_modules:
